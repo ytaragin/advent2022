@@ -27,7 +27,7 @@ let main args =
     printfn $"{s}"
 
     // AdventDay1.run
-    AdventDay5.run
+    AdventDay8.run
 
 
 

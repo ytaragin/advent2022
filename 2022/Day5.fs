@@ -27,7 +27,7 @@ let splitLine (line) =
 
 
 
-let startingPos: Stacks =
+let startingPos () : Stacks =
     [| [ 'T'; 'Z'; 'B' ]
        [ 'N'; 'D'; 'T'; 'H'; 'V' ]
        [ 'D'; 'M'; 'F'; 'B' ]
@@ -42,9 +42,7 @@ let startingPos: Stacks =
 
 
 let rec moveBoxes (boxes: Stacks) src dest amount =
-    if amount = 0 then
-        boxes
-    elif List.isEmpty boxes[src] then
+    if amount = 0 || List.isEmpty boxes[src] then
         boxes
     else
         let s = List.head boxes[src]
@@ -55,9 +53,29 @@ let rec moveBoxes (boxes: Stacks) src dest amount =
         moveBoxes boxes src dest (amount - 1)
 
 
+let rec moveFromList (src: char list) dest amount =
+    if amount = 0 || List.isEmpty src then
+        (src, dest)
+    else
+        let s = List.head src
+        let sl = List.tail src
+        moveFromList sl (s :: dest) (amount - 1)
 
-let runMove (boxes: Stacks) (move: Move) =
-    moveBoxes boxes move.src move.dest move.amount
+
+
+let moveBoxesB (boxes: Stacks) src dest amount =
+    if amount = 0 || List.isEmpty boxes[src] then
+        boxes
+    else
+        let (newSrc, temp) = moveFromList boxes[src] [] amount
+        let (_, newDest) = moveFromList temp boxes[dest] amount
+        boxes.[dest] <- newDest
+        boxes.[src] <- newSrc
+        boxes
+
+
+let runMove moveFunc (boxes: Stacks) (move: Move) =
+    moveFunc boxes move.src move.dest move.amount
 
 
 
@@ -72,4 +90,13 @@ let printTops (boxes: Stacks) =
 let run: unit =
     // let containers: seq<string> = loadLines "test.txt"
     let lines: seq<string> = loadLines "input5A.txt"
-    Seq.map splitLine lines |> Seq.fold runMove startingPos |> printTops
+
+    let movePart1 = runMove moveBoxes
+    let movePart2 = runMove moveBoxesB
+    let moves = Seq.map splitLine lines
+
+    printf "Part 1: "
+    Seq.fold movePart1 (startingPos ()) moves |> printTops
+
+    printf "Part 2: "
+    Seq.fold movePart2 (startingPos ()) moves |> printTops
